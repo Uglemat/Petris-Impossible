@@ -24,8 +24,8 @@ BORDERWIDTH = 10
 
 MATRIS_OFFSET = 20
 
-MATRIX_WIDTH = 10
-MATRIX_HEIGHT = 22
+MATRIX_WIDTH = 14
+MATRIX_HEIGHT = 24
 
 LEFT_MARGIN = 340
 
@@ -57,7 +57,7 @@ class Matris(object):
         self.set_tetrominoes()
         self.tetromino_rotation = 0
         self.downwards_timer = 0
-        self.base_downwards_speed = 0.4 # Move down every 400 ms
+        self.base_downwards_speed = 1 # Move down every second
 
         self.movement_keys = {'left': 0, 'right': 0}
         self.movement_keys_speed = 0.05
@@ -261,22 +261,13 @@ class Matris(object):
         return rotate(self.current_tetromino.shape, rotation)
 
     def block(self, color, shadow=False):
-        colors = {'blue':   (47, 64, 224),
-                  'yellow': (225, 242, 41),
-                  'pink':   (242, 41, 195),
-                  'green':  (22, 181, 64),
-                  'red':    (204, 22, 22),
-                  'orange': (245, 144, 12),
-                  'cyan':   (10, 255, 226)}
-
-
         if shadow:
             end = [40] # end is the alpha value
         else:
             end = [] # Adding this to the end will not change the array, thus no alpha value
 
         border = Surface((BLOCKSIZE, BLOCKSIZE), pygame.SRCALPHA, 32)
-        border.fill(list(map(lambda c: c*0.5, colors[color])) + end)
+        border.fill(list(map(lambda c: c*0.5, color)) + end)
 
         borderwidth = 2
 
@@ -284,7 +275,7 @@ class Matris(object):
         boxarr = pygame.PixelArray(box)
         for x in range(len(boxarr)):
             for y in range(len(boxarr)):
-                boxarr[x][y] = tuple(list(map(lambda c: min(255, int(c*random.uniform(0.8, 1.2))), colors[color])) + end) 
+                boxarr[x][y] = tuple(list(map(lambda c: min(255, int(c*random.uniform(0.8, 1.2))), color)) + end) 
 
         del boxarr # deleting boxarr or else the box surface will be 'locked' or something like that and won't blit.
         border.blit(box, Rect(borderwidth, borderwidth, 0, 0))
@@ -454,9 +445,9 @@ class Game(object):
 
 
     def blit_next_tetromino(self, tetromino_surf):
-        area = Surface((BLOCKSIZE*5, BLOCKSIZE*5))
+        area = Surface((BLOCKSIZE*6, BLOCKSIZE*6))
         area.fill(BORDERCOLOR)
-        area.fill(BGCOLOR, Rect(BORDERWIDTH, BORDERWIDTH, BLOCKSIZE*5-BORDERWIDTH*2, BLOCKSIZE*5-BORDERWIDTH*2))
+        area.fill(BGCOLOR, Rect(BORDERWIDTH, BORDERWIDTH, BLOCKSIZE*6-BORDERWIDTH*2, BLOCKSIZE*6-BORDERWIDTH*2))
 
         areasize = area.get_size()[0]
         tetromino_surf_size = tetromino_surf.get_size()[0]
@@ -534,5 +525,5 @@ if __name__ == '__main__':
     pygame.init()
 
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    pygame.display.set_caption("MaTris")
+    pygame.display.set_caption("Petris Impossible")
     Menu().main(screen)

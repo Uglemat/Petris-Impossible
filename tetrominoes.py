@@ -6,26 +6,26 @@ Tetromino = namedtuple("Tetrimino", "color shape")
 
 list_of_tetrominoes = [
     Tetromino(color=(47, 64, 224),
-              shape=((O,O,X,O,O),
-                     (O,O,X,O,O),
-                     (O,O,X,O,O),
-                     (O,O,X,O,O),
-                     (O,O,X,O,O))),
+              shape=((O,O,O,O,O),
+                     (O,O,O,O,O),
+                     (X,X,X,X,X),
+                     (O,O,O,O,O),
+                     (O,O,O,O,O))),
     Tetromino(color=(124, 252, 0),
-              shape=((O,O,X,O),
-                     (O,X,X,O),
+              shape=((O,O,O,O),
                      (O,O,X,O),
-                     (O,O,X,O))),
+                     (X,X,X,X),
+                     (O,O,O,O))),
     Tetromino(color=(225, 242, 41),
-              shape=((O,O,X,O),
-                     (O,O,X,O),
-                     (O,X,X,O),
-                     (O,X,O,O))),
+              shape=((O,O,O,O),
+                     (X,X,X,O),
+                     (O,O,X,X),
+                     (O,O,O,O))),
     Tetromino(color=(22, 181, 64),
-              shape=((O,O,X,O),
-                     (O,O,X,O),
-                     (O,O,X,O),
-                     (O,X,X,O))),
+              shape=((O,O,O,O),
+                     (X,O,O,O),
+                     (X,X,X,X),
+                     (O,O,O,O))),
     Tetromino(color=(10, 255, 226),
               shape=((O,X,X),
                      (O,X,O),
@@ -63,6 +63,10 @@ list_of_tetrominoes = [
 def rotate(shape, times=1):
     """ Rotate a shape to the right """
     return shape if times == 0 else rotate(tuple(zip(*shape[::-1])), times-1)
+
+def flip(shape):
+    """ flip a shape """
+    return rotate(tuple(zip(*shape)), 1)
 
 
 def shape_str(shape):

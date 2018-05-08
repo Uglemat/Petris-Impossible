@@ -2,11 +2,12 @@
 import pygame
 from pygame import Rect, Surface
 import random
+import math
 import os
 import kezmenu
 
 from tetrominoes import list_of_tetrominoes
-from tetrominoes import rotate
+from tetrominoes import rotate, flip, Tetromino, X, O
 
 from scores import load_score, write_score
 
@@ -25,7 +26,7 @@ BORDERWIDTH = 10
 MATRIS_OFFSET = 20
 
 MATRIX_WIDTH = 14
-MATRIX_HEIGHT = 24
+MATRIX_HEIGHT = 25
 
 LEFT_MARGIN = 340
 
@@ -34,7 +35,7 @@ HEIGHT = (MATRIX_HEIGHT-2)*BLOCKSIZE + BORDERWIDTH*2 + MATRIS_OFFSET*2
 
 TRICKY_CENTERX = WIDTH-(WIDTH-(MATRIS_OFFSET+BLOCKSIZE*MATRIX_WIDTH+BORDERWIDTH*2))/2
 
-VISIBLE_MATRIX_HEIGHT = MATRIX_HEIGHT - 2
+VISIBLE_MATRIX_HEIGHT = MATRIX_HEIGHT - 3
 
 
 class Matris(object):
@@ -53,8 +54,18 @@ class Matris(object):
         it will be placed in `self.matrix`.
         """
 
-        self.next_tetromino = random.choice(list_of_tetrominoes)
+        self.next_tetromino = Tetromino(color=(random.randint(0,255), random.randint(0,255), random.randint(0,255)),
+                                        shape=((O,O,O,O,O,O,O),
+                                               (O,X,X,O,X,O,O),
+                                               (X,O,O,O,X,O,O),
+                                               (X,O,X,O,X,O,O),
+                                               (X,O,X,O,X,O,O),
+                                               (O,X,X,O,X,X,X),
+                                               (O,O,O,O,O,O,O)))
+
         self.set_tetrominoes()
+        self.tetromino_position = (5, self.tetromino_position[1]) # Making the good luck visible
+
         self.tetromino_rotation = 0
         self.downwards_timer = 0
         self.base_downwards_speed = 1 # Move down every second
@@ -84,7 +95,7 @@ class Matris(object):
         self.current_tetromino = self.next_tetromino
         self.next_tetromino = random.choice(list_of_tetrominoes)
         self.surface_of_next_tetromino = self.construct_surface_of_next_tetromino()
-        self.tetromino_position = (0,4) if len(self.current_tetromino.shape) == 2 else (0, 3)
+        self.tetromino_position = (0, MATRIX_WIDTH//2 - int(math.ceil(len(self.current_tetromino.shape)/2.0)))
         self.tetromino_rotation = 0
         self.tetromino_block = self.block(self.current_tetromino.color)
         self.shadow_block = self.block(self.current_tetromino.color, shadow=True)
@@ -139,15 +150,18 @@ class Matris(object):
             elif unpressed(pygame.K_RIGHT) or unpressed(pygame.K_d):
                 self.movement_keys['right'] = 0
                 self.movement_keys_timer = (-self.movement_keys_speed)*2
-
+                
+            elif unpressed(pygame.K_f):
+                self.request_flip()
 
 
 
         self.downwards_speed = self.base_downwards_speed ** (1 + self.level/10.)
 
         self.downwards_timer += timepassed
-        downwards_speed = self.downwards_speed*0.10 if any([pygame.key.get_pressed()[pygame.K_DOWN],
+        downwards_speed = self.downwards_speed*0.05 if any([pygame.key.get_pressed()[pygame.K_DOWN],
                                                             pygame.key.get_pressed()[pygame.K_s]]) else self.downwards_speed
+
         if self.downwards_timer > downwards_speed:
             if not self.request_movement('down'):
                 self.lock_tetromino()
@@ -169,8 +183,8 @@ class Matris(object):
         for y in range(MATRIX_HEIGHT):
             for x in range(MATRIX_WIDTH):
 
-                #                                       I hide the 2 first rows by drawing them outside of the surface
-                block_location = Rect(x*BLOCKSIZE, (y*BLOCKSIZE - 2*BLOCKSIZE), BLOCKSIZE, BLOCKSIZE)
+                #                                       I hide the 3 first rows by drawing them outside of the surface
+                block_location = Rect(x*BLOCKSIZE, (y*BLOCKSIZE - 3*BLOCKSIZE), BLOCKSIZE, BLOCKSIZE)
                 if with_tetromino[(y,x)] is None:
                     self.surface.fill(BGCOLOR, block_location)
                 else:
@@ -254,6 +268,14 @@ class Matris(object):
             return self.tetromino_position
         else:
             return False
+
+    def request_flip(self):
+        flipped = flip(self.current_tetromino.shape)
+        if self.blend(shape=flipped):
+            self.needs_redraw = True
+            self.current_tetromino = Tetromino(shape=flipped, color=self.current_tetromino.color)
+            return True
+        return False
 
     def rotated(self, rotation=None):
         if rotation is None:
